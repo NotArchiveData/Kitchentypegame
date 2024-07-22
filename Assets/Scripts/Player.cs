@@ -8,12 +8,39 @@ public class Player : MonoBehaviour {
     
     [SerializeField] private float moveSpeed = 10f;
     [SerializeField] private GameInput gameInput;
+    [SerializeField] private LayerMask counter_mask;
 
-    private bool walk;
+    private bool is_walking;
+    private Vector3 last_interacted_direction;
 
     private void Update() {
-        Vector2 input = gameInput.GetMovementVectorNormalized();
+        handle_movement();
+        handle_interactions();
+    }
 
+    public bool IsWalking() {
+        return is_walking;
+    }
+
+    private void handle_interactions() {
+        Vector2 input = gameInput.GetMovementVectorNormalized();
+        Vector3 moveDirection = new Vector3(input.x, 0f, input.y);
+
+        if (moveDirection != Vector3.zero) {
+            last_interacted_direction = moveDirection;
+        }
+
+        float interact_distance = 2f;
+        if (Physics.Raycast(transform.position, last_interacted_direction, out  RaycastHit raycast_hit, interact_distance, counter_mask)) {
+            if (raycast_hit.transform.TryGetComponent(out ClearCounter clear_counter)) {
+                // Has clear counter
+                clear_counter.interact();
+            }
+        }
+
+    }
+    private void handle_movement() {
+        Vector2 input = gameInput.GetMovementVectorNormalized();
         Vector3 moveDirection = new Vector3(input.x, 0f, input.y);
         
         float playerRadius = 0.7f;
@@ -56,13 +83,9 @@ public class Player : MonoBehaviour {
             transform.position += moveDirection * moveDistance;
         }
 
-        walk = moveDirection != Vector3.zero;
+        is_walking = moveDirection != Vector3.zero;
         float rotationSpeed = 10f;
         transform.forward = Vector3.Slerp(transform.forward, moveDirection, Time.deltaTime * rotationSpeed);
 
-    }
-
-    public bool IsWalking() {
-        return walk;
     }
 }
