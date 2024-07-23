@@ -12,6 +12,7 @@ public class Player : MonoBehaviour {
 
     private bool is_walking;
     private Vector3 last_interacted_direction;
+    private ClearCounter selected_counter;
 
     private void Start() {
         gameInput.on_interact_action += gameInput_on_interact_action;
@@ -29,8 +30,13 @@ public class Player : MonoBehaviour {
         if (Physics.Raycast(transform.position, last_interacted_direction, out  RaycastHit raycast_hit, interact_distance, counter_mask)) {
             if (raycast_hit.transform.TryGetComponent(out ClearCounter clear_counter)) {
                 // Has clear counter
-                clear_counter.interact();
+                if (clear_counter != selected_counter) {
+                    selected_counter = clear_counter;
+                }
             }
+        }
+        else {
+            selected_counter = null;
         }
 
     }
